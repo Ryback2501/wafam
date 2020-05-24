@@ -11,7 +11,7 @@ animate
 -------
 This extends the `animate` module included in Attract Mode, which is loaded by default.
 
-###How to use it?
+### How to use it? ###
 
 Clone or download the project and copy the `modules` folder into the Attract Mode folder. There is already a `modules` folder, but don't worry. You ar only adding a `wafam` folder inside it.
 
@@ -23,7 +23,7 @@ fe.load_module("wafam/animate");
 
 The default `animate` module is loaded, so you only need to load this module into your layout to make the animations work.
 
-###Methods
+### Methods ###
 
 * `add_animation(anim)`: Adds the animation to the animation core and returns it. This allows to create an animation, add it to the animation core and keep its reference in a single line of code.
 
