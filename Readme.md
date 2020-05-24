@@ -29,7 +29,7 @@ The default `animate` module is loaded, so you only need to load this module int
 
 Example:
 ````squirrel
-local my_animation = add_animation(PropertyAnimation(item, {"property = "alpha", start = 255, end = 0, time = 150,"} ));
+local my_anim = add_animation(PropertyAnimation(item, {"property = "alpha", start = 255, end = 0, time = 150,"} ));
 ````
 
 * `setup_animation(config)`: Adds the slots needed to run the animation on demand to the table with the configuration of the animation.
@@ -37,13 +37,13 @@ local my_animation = add_animation(PropertyAnimation(item, {"property = "alpha",
 Example:
 ````squirrel
 local my_config = {"property = "alpha", start = 255, end = 0, time = 150,"};
-local my_animation = PropertyAnimation(item, setup_animation(my_config)));
+local my_anim = PropertyAnimation(item, setup_animation(my_config)));
 ````
 
-* `play_animation(anim)`: Plays the animation passed as a parameter. It will only work with animations 
+* `play_animation(anim)`: Plays the animation passed as a parameter. It will only work with animations which configuration tables were setup with `setup_animation`.
 
 Example:
 ````squirrel
-play_animation(my_animation);
+play_animation(my_anim);
 ````
 
