@@ -47,3 +47,9 @@ Example:
 play_animation(my_anim);
 ````
 
+* `play_animation_and_run(anim, func)`: Plays the animation passed as first parameter and, when it finishes, runs the function passed as second parameter. It will only work with animations which configuration tables were setup with `setup_animation`.
+
+Example:
+````squirrel
+play_animation_and_run(my_anim, function() { ::print("This code runs after the animation stops. "); });
+````
