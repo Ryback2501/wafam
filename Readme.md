@@ -13,7 +13,7 @@ This extends the `animate` module included in Attract Mode, which is loaded by d
 
 ### How to use it? ###
 
-Clone or download the project and copy the `modules` folder into the Attract Mode folder. There is already a `modules` folder, but don't worry. You ar only adding a `wafam` folder inside it.
+Clone or download the project and copy the `modules` folder into the Attract Mode folder. There is already a `modules` folder, but don't worry. You are only adding a `wafam` folder with the script inside it.
 
 Then, load the `animate` module with this line.
 
