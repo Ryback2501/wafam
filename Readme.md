@@ -1,4 +1,4 @@
-WorkArrounds For Attract Mode
+**W**ork**A**rrounds **F**or **A**ttract **M**ode
 =============================
 
 This project includes workarounds to I'm going to be adding over time.
