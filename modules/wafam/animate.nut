@@ -43,3 +43,15 @@ function play_animation_and_run(anim, func)
     }
     play_animation(anim);
 }
+
+function blocking_animations_running()
+{
+    foreach(anim in animation.animations)
+    {
+        if("blocking" in anim.config && anim.config.blocking && anim.running)
+        {
+            return true;
+        }
+    }
+    return false;
+}
