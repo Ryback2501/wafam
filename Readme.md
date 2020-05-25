@@ -1,4 +1,4 @@
-WorkArrounds For Attract Mode
+**W**ork**A**rrounds **F**or **A**ttract **M**ode
 =============================
 
 This project includes workarounds to I'm going to be adding over time.
@@ -38,18 +38,27 @@ Example:
 ````squirrel
 local my_config = {"property = "alpha", start = 255, end = 0, time = 150,"};
 local my_anim = PropertyAnimation(item, setup_animation(my_config)));
+
+local my_other_config = {"property = "x", start = 100, end = 200, time = 350,"};
+local my_other_anim = add_animation(PropertyAnimation(another_item, setup_animation(my_other_config))));
 ````
 
 * `play_animation(anim)`: Plays the animation passed as a parameter. It will only work with animations which configuration tables were setup with `setup_animation`.
 
 Example:
 ````squirrel
+local my_config = {"property = "alpha", start = 255, end = 0, time = 150,"};
+local my_anim = add_animation(PropertyAnimation(item, setup_animation(my_config))));
+
 play_animation(my_anim);
 ````
 
-* `play_animation_and_run(anim, func)`: Plays the animation passed as first parameter and, when it finishes, runs the function passed as second parameter. It will only work with animations which configuration tables were setup with `setup_animation`.
+* `play_animation_and_run(anim, func)`: Plays the animation passed as first parameter and, when it finishes, runs the function passed as second parameter. It will only work with animations which configuration tables were setup with `setup_animation`. This method allows to re-use an animation and to run different functions with different calls.
 
 Example:
 ````squirrel
+local my_config = {"property = "alpha", start = 255, end = 0, time = 150,"};
+local my_anim = add_animation(PropertyAnimation(item, setup_animation(my_config))));
+
 play_animation_and_run(my_anim, function() { ::print("This code runs after the animation stops. "); });
 ````
