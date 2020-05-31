@@ -31,16 +31,27 @@ function play_animation(anim)
 
 function play_animation_and_run(anim, func)
 {
-    anim.config.afterOnStop <- function(anim) { func(); delete anim.config.afterOnStop; };
-    if("onStop" in anim.config)
+    
+    if("afterOnStop" in anim.config == false)
     {
-        local onstop = anim.config.onStop;
-        anim.config.onStop <- function(anim) { onstop(anim); if("afterOnStop" in anim.config) { anim.config.afterOnStop(anim); } };
+        if("onStop" in anim.config)
+        {
+            local onstop = anim.config.onStop;
+            anim.config.onStop <- function(anim)
+            {
+                onstop(anim);
+                if("afterOnStop" in anim.config && anim.config.afterOnStop != null) { anim.config.afterOnStop(anim); }
+            };
+        }
+        else
+        {
+            anim.config.onStop <- function(anim)
+            {
+                if("afterOnStop" in anim.config && anim.config.afterOnStop != null) { anim.config.afterOnStop(anim); }
+            };
+        }
     }
-    else
-    {
-        anim.config.onStop <- function(anim) { if("afterOnStop" in anim.config) { anim.config.afterOnStop(anim); } };
-    }
+    anim.config.afterOnStop <- function(anim) { func(); anim.config.afterOnStop = null; };
     play_animation(anim);
 }
 
