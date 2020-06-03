@@ -1,6 +1,6 @@
 local supported_img_extensions = [ "png", "jpg", "jpeg", "gif", "bmp", "tga" ];
 
-function add_artwork(label, parent = fe, offset = 0)
+function add_artwork(label, parent = ::fe, offset = 0)
 {
     return parent.add_image(get_artwork_path(label, offset));
 }
@@ -10,13 +10,13 @@ function get_artwork_path(label, offset = 0)
     local path = fe.path_expand("./scraper/" + fe.game_info(Info.Emulator, offset - fe.list.index) + "/" + label + "/");
     foreach(extension in supported_img_extensions)
     {
-        local full_path = path + fe.game_info(Info.Name, offset - fe.list.index) + "." + extension;
+        local full_path = path + fe.game_info(Info.Name, offset) + "." + extension;
         if(fe.path_test(full_path, PathTest.IsFile))
         {
             return full_path;
         }
     }
-    return path + fe.game_info(Info.Emulator, offset - fe.list.index) + ".jpg";
+    return path + fe.game_info(Info.Emulator, offset) + ".jpg";
 }
 
 function fit_aspect_ratio(image, max_width, max_height)
