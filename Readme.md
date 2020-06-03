@@ -105,7 +105,7 @@ The default `animate` module is loaded, so you only need to load this module int
 artwork
 -------
 
-
+This module allows to load artwork files into normal images. As the created objects are normal images, they don't change when the selected game changes.
 
 ### How to use it? ###
 
