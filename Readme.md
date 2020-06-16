@@ -10,12 +10,71 @@ Modules
 
 Clone or download the project and copy the `modules` folder into the Attract Mode folder. There is already a `modules` folder, but don't worry. You are only adding a `wafam` folder with the script inside it.
 
+* [interpolate](#interpolate)
 * [animate](#animate)
 * [artwork](#artwork)
 
+---
+
+interpolate
+-----------
+This module allows you to create classes that run actions that run along a defined time interval.
+
+### Clases ###
+
+* `Interpolator`: This class is stored in the root squirrel table 'interpolator'. It contains a table of interpolable objects. It interpolates all the interpolable objects in it and they are removed when their interpolations finish.
+
+  Methods:
+
+  * `add(interpolable)`: Adds an interpolable object to the list of interpolable objects of the interpolator.
+
+  Example
+  ````squirrel
+  interpolator.add(my_interpolable_object);
+  ````
+
+* `InterpolableBase`: It is the base class of every interpolable object. Any object that inherits from this class and is added to the interpolator's list of interpolable objects (through the method `add(interpolable)` previously mentioned)
+  
+  This is an example how to inherit from `InterpolableBase`:
+  ````squirrel
+  class LoggedInterpolable extends InterpolableBase
+  {
+      constructor(lapse)
+      {
+          ::print("new!\n");
+          base(lapse);
+      }
+
+      // This method is executed before the interpolation begins
+      function start(ttime)
+      {
+          ::print("start(" + ttime + ")\n");
+          base.start(ttime);
+      }
+
+      // This method is executed on every update of the interpolation
+      function update(ttime)
+      {
+          ::print("update(" + ttime + ")\n");
+          return base.update(ttime);
+      }
+
+      // This method is executed after the interpolation finishes
+      function stop()
+      {
+          ::print("stop()\n");
+          return base.stop();
+      }
+  }
+  ````
+
+---
+
 animate
 -------
-This module has methods that makes it easier to trigger animations on demand. It extends the `animate` module included in Attract Mode, which is loaded by default.
+This module is an alternative animation module. It only supports animations for properties of objects. Particles and Sprite support could be added in the future.
+
+Each animation is played only once. There is no support for loops, or pulsed and reversed animations yet.
 
 ### How to use it? ###
 
@@ -25,64 +84,100 @@ Load the `animate` module with this line:
 fe.load_module("wafam/animate");
 ````
 
-The default `animate` module is loaded, so you only need to load this module into your layout to make the animations work.
+### Clases ###
+
+* `Animation`: Animates the values of the properties of an object.
+  
+    The constructor has the follwing parameters:
+    * `lapse`: The lapse of time, in miliseconds, the animation lasts.
+    * `object`: The object which properties the animation will animate.
+    * `config`: A table with the configuration of the animation. This is an optional parameter and the default value is `null`. 
+    * `blocking`: Indicates if the animation is a blocking animation. This is an optional parameter and the default value is `false`. This flag can be checked with the `blocking_animations_running` function.
+
+    > **Note**: If an animation is created without a configuration, the method `setup_properties` must be called before playing the animation to define the animation ranges of the properties to animate.
+
+    Example
+    ````squirrel
+    //Configuration to move an object horizontally
+    local config = { properties = { x = { start = 100, end = 250 } } };
+
+    //This is a 1 second blocking animation of the foo object
+    local animation = Animation(1000, foo, config, true);
+    ````
+
+    ````squirrel
+    //This animation doesn't have a configuration, so it won't be played.
+    local dumb_animation = Animation(5000, foo);
+    ````
+
+    Methods:
+    * `play(func = null)`: Plays the animation. If a function is sent as parameter, it will be called when the animation finishes. The function will be called with a reference of the animation.
+
+    Examples
+    ````squirrel
+    local config = { interpolation = interpolations.linear, properties = { x = { start = 100, end = 250 } } };
+    local animation = Animation(1000, foo, config, true);
+    animation.play();
+    ````
+
+    ````squirrel
+    //When the animation finishes, it will print a message
+    local my_function = function(anim) { ::print("The animation has finished.\n"); };
+    animation.play(my_function)
+    ````
+
+    > **Note**: If an `onstop` function is defined in the configuration of the animation, it won't be replaced if the animation is played with another function as parameter. In that case, when the animation finishes, the `onstop` function will be called and the function sent as parameter will be called afterwards.
+
+    * `setup_properties(prop)`: Replaces the `properties` section of the `configuration` table in the animation by the `prop` table sent as parameter.
+
+    Example
+    ````squirrel
+    //This new animation is useless.
+    local apparently_dumb_animation = Animation(5000, foo);
+
+    //The table contains only information of the
+    local config = {
+        width = { start = 50, end = 700 },
+        x = { start = 150, end = 560 },
+        y = { start = 45, end = 300 }
+    };
+
+    //The information of the properties to animate
+    apparently_dumb_animation.setup_properties(config);
+    apparently_dumb_animation.play();
+    ````
+
+    The structure of the `config` table of an animation:
+    * `properties`: A table with the information of the properties to animate. Each slot represents a property to animate and contains a `start` value and an `end` value. The property will be animated from the start value to the end value. The key must match the property to animate.
+    * `interpolation`: The interpolation method that will be applied. If this slot isn't set, a linear interpolation method will be used.
+    * `onstart`: A function that will be called before the animation starts.
+    * `onupdate`: A function that will be called on every frame of the animation.
+    * `onstop`: A function that will be called after the animation ends.
+
+    Example:
+    ````squirrel
+    {
+        properties = {
+            x = { start = 100, end = 200 },
+            y = { start = 100, end = 200 },
+            width = { start = 150, end = 300 },
+            height = { start = 150, end = 300 },
+            alpha = { start = 255, end = 0  }
+        },
+        interpolation = interpolations.reverse,
+        onstart = function(anim) {
+            ::print("The animation is about to start.\n");
+        },
+        onupdate = function(anim) {
+            ::print("The animation is playing.\n");
+        },
+        onstop = function(anim) {
+            ::print("The animation just finished.\n");
+        }
+    }
+    ````
 
 ### Methods ###
-
-* `add_animation(anim)`: Adds the animation to the animation core and returns it. This allows to create an animation, add it to the animation core and keep its reference in a single line of code.
-
-  Example:
-  ````squirrel
-  local my_anim = add_animation(PropertyAnimation(item, { property = "alpha", start = 255, end = 0, time = 150 } ));
-  ````
-
-* `setup_animation(config)`: Adds the slots needed to run the animation on demand to the table with the configuration of the animation.
-
-  Parameters:
-  - `config`: The configuration of the animation.
-
-  Example:
-  ````squirrel
-  local my_config = { property = "alpha", start = 255, end = 0, time = 150 };
-  local my_anim = PropertyAnimation(item, setup_animation(my_config)));
-
-  local my_other_config = { property = "x", start = 100, end = 200, time = 350 };
-  local my_other_anim = add_animation(PropertyAnimation(another_item, setup_animation(my_other_config))));
-  ````
-
-* `play_animation(anim)`: Plays the animation passed as a parameter. The animation needs a configuration set up with the `setup_animation` method and must be added to the animation core.
-
-  Parameters:
-  - `anim`: The animation to play.
-
-  Example:
-  ````squirrel
-  local my_config = { property = "alpha", start = 255, end = 0, time = 150 };
-  local my_anim = add_animation(PropertyAnimation(item, setup_animation(my_config))));
-
-  play_animation(my_anim);
-  ````
-
-* `play_animation_and_run(anim, func)`: Plays an animation and, when it finishes, runs a function. It will only work with animations which configuration tables were setup with `setup_animation`. This method allows to re-use an animation and to run different functions with different calls. It doesn't remove the functionality of the `onStop` property in the configuration of the animation, if it was added.
-
-  Parameters:
-  - `anim`: The animation to play first.
-  - `func`: The function to run when the animation finishes.
-
-  Example:
-  ````squirrel
-  local my_config = { property = "alpha", start = 255, end = 0, time = 150 };
-  local my_anim = add_animation(PropertyAnimation(item, setup_animation(my_config))));
-
-  local my_other_config = {
-    property = "alpha", start = 255, end = 0, time = 150,
-    onStop = function(anim) { ::print("Code that will run always when the animation stops."); }
-  };
-  local my_other_anim = add_animation(PropertyAnimation(item, setup_animation(my_other_config))));
-
-  play_animation_and_run(my_anim, function() { ::print("This code runs after the animation stops.\n"); });
-  play_animation_and_run(my_other_anim, function() { ::print("This code runs after onStop finishes.\n"); });
-  ````
 
 * `blocking_animations_running()`: Returns `true` if there is one or more animations with the property `blocking` set to `true`.
 
@@ -101,6 +196,8 @@ The default `animate` module is loaded, so you only need to load this module int
       ::print("I can run my code.\n")
   }
   ````
+
+---
 
 artwork
 -------

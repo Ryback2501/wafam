@@ -1,68 +1,100 @@
-fe.load_module("animate");
+//The interpolate module is needed to control the interpolation of the animations
+fe.load_module("wafam/interpolate");
 
-function add_animation(anim)
+/*
+Animates the values of the properties of an object.
+*/
+class Animation extends InterpolableBase
 {
-    animation.add(anim);
-    return anim;
-}
+    object = null;
+    config = null;
+    blocking = false;
 
-function setup_animation(config)
-{
-    config.play <- false;
-
-    if("onStart" in config)
+    constructor(lapse, object, config = null, blocking = false)
     {
-        local onstart = config.onStart;
-        config.onStart <- function(anim) { anim.config.play = false; onstart(anim); };
-    }
-    else
-    {
-        config.onStart <- function(anim) { anim.config.play = false; };
+        this.object = object;
+        this.config = config != null ? config : {};
+        this.blocking = blocking;
+        tlapse = lapse;
     }
 
-    config.when <- function(anim) { return anim.config.play; };
-    return config;
-}
+    function play(func = null)
+    {
+        if(func != null)
+        {
+            if("onstoponce" in config) config.onstoponce = func;
+            else config.onstoponce <- func;
+        }
+        interpolator.add(this);
+    }
 
-function play_animation(anim)
-{
-    anim.config.play = true;
-}
-
-function play_animation_and_run(anim, func)
-{
+    function setup_properties(prop)
+    {
+        if("properties" in config) config.properties = prop;
+        else config.properties <- prop;
+        foreach(key, value in config.properties)
+        {
+            ::print("setup " + key + " - start " + value.start + " - end " + value.end + "\n");
+        }
+    }
     
-    if("afterOnStop" in anim.config == false)
+    function start(ttime)
     {
-        if("onStop" in anim.config)
-        {
-            local onstop = anim.config.onStop;
-            anim.config.onStop <- function(anim)
-            {
-                onstop(anim);
-                if("afterOnStop" in anim.config && anim.config.afterOnStop != null) { anim.config.afterOnStop(anim); }
-            };
-        }
-        else
-        {
-            anim.config.onStop <- function(anim)
-            {
-                if("afterOnStop" in anim.config && anim.config.afterOnStop != null) { anim.config.afterOnStop(anim); }
-            };
-        }
+        if("onstart" in config) config.onstart(this);
+        base.start(ttime);
     }
-    anim.config.afterOnStop <- function(anim) { func(); anim.config.afterOnStop = null; };
-    play_animation(anim);
+
+    function update(ttime)
+    {
+        if(!("properties" in config)) return true;
+        if("onupdate" in config) config.onupdate(this);
+        foreach(key, value in config.properties)
+        {
+            ::print("animating " + key + " - start " + value.start + " - end " + value.end + "\n");
+            object[key] = animate(value.start, value.end, ttime);
+        }
+        return base.update(ttime);
+    }
+
+    function stop()
+    {
+        if("onstop" in config) config.onstop(this);
+        if("onstoponce" in config)
+        {
+            config.onstoponce(this);
+            delete config.onstoponce;
+        }
+        return base.stop();
+    }
+
+    function animate(start, end, ttime)
+    {
+        local interpolation = "interpolation" in config ? config.interpolation : interpolations.linear;
+        return start + ((end - start) * interpolation(minmax(normalize(ttime - tstart, tlapse))));
+    }
+
+    function normalize(elapsed, lapse)
+    {
+        local result = elapsed / lapse.tofloat();
+        return result;
+    }
+    
+    function minmax(value, min = 0.0, max = 1.0)
+    {
+        if(min > value) value = min;
+        if(max < value) value = max;
+        return value;
+    }
 }
 
+/*
+Returns <true> if there is a blocking interpolable object being interpolated.
+*/
 function blocking_animations_running()
 {
-    foreach(anim in animation.animations)
+    foreach(interpolable in interpolator.interpolables)
     {
-        if("blocking" in anim.config && anim.config.blocking && anim.running)
-        {
-            return true;
-        }
+        if("blocking" in interpolable && interpolable.blocking) return true;
     }
     return false;
 }
