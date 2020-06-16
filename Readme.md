@@ -1,7 +1,7 @@
 WorkArrounds For Attract Mode
 =============================
 
-This project includes workarounds to I'm going to be adding over time.
+This project was created to publish workarounds to help creating layouts for Attract Mode, but I think that things have gone beyond already.
 
 Modules
 --------
@@ -18,7 +18,7 @@ Clone or download the project and copy the `modules` folder into the Attract Mod
 
 interpolate
 -----------
-This module allows you to create classes that run actions that run along a defined time interval.
+This module allows you to create classes that run actions along a defined time lapse.
 
 ### Clases ###
 
@@ -33,7 +33,7 @@ This module allows you to create classes that run actions that run along a defin
   interpolator.add(my_interpolable_object);
   ````
 
-* `InterpolableBase`: It is the base class of every interpolable object. Any object that inherits from this class and is added to the interpolator's list of interpolable objects (through the method `add(interpolable)` previously mentioned)
+* `InterpolableBase`: It is the base class of every interpolable object. Any object that inherits from this class and is added to the interpolator's list of interpolable objects (through the method `add(interpolable)` previously mentioned) will be interpolated along the lapse of time defined.
   
   This is an example how to inherit from `InterpolableBase`:
   ````squirrel
@@ -72,7 +72,7 @@ This module allows you to create classes that run actions that run along a defin
 
 animate
 -------
-This module is an alternative animation module. It only supports animations for properties of objects. Particles and Sprite support could be added in the future.
+This module is an alternative animation module. It only supports animations for properties of objects. Particles and Sprite support could be added in the future, but now there aren't plans for that.
 
 Each animation is played only once. There is no support for loops, or pulsed and reversed animations yet.
 
@@ -150,9 +150,9 @@ fe.load_module("wafam/animate");
     The structure of the `config` table of an animation:
     * `properties`: A table with the information of the properties to animate. Each slot represents a property to animate and contains a `start` value and an `end` value. The property will be animated from the start value to the end value. The key must match the property to animate.
     * `interpolation`: The interpolation method that will be applied. If this slot isn't set, a linear interpolation method will be used.
-    * `onstart`: A function that will be called before the animation starts.
-    * `onupdate`: A function that will be called on every frame of the animation.
-    * `onstop`: A function that will be called after the animation ends.
+    * `onstart`: A function that will be called before the animation starts. If this slot isn't set, no method will be called.
+    * `onupdate`: A function that will be called on every frame of the animation. If this slot isn't set, no method will be called.
+    * `onstop`: A function that will be called after the animation ends. If this slot isn't set, no method will be called.
 
     Example:
     ````squirrel
@@ -162,7 +162,7 @@ fe.load_module("wafam/animate");
             y = { start = 100, end = 200 },
             width = { start = 150, end = 300 },
             height = { start = 150, end = 300 },
-            alpha = { start = 255, end = 0  }
+            alpha = { start = 255, end = 0 }
         },
         interpolation = interpolations.reverse,
         onstart = function(anim) {
