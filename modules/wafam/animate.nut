@@ -32,10 +32,6 @@ class Animation extends InterpolableBase
     {
         if("properties" in config) config.properties = prop;
         else config.properties <- prop;
-        foreach(key, value in config.properties)
-        {
-            ::print("setup " + key + " - start " + value.start + " - end " + value.end + "\n");
-        }
     }
     
     function start(ttime)
@@ -50,7 +46,6 @@ class Animation extends InterpolableBase
         if("onupdate" in config) config.onupdate(this);
         foreach(key, value in config.properties)
         {
-            ::print("animating " + key + " - start " + value.start + " - end " + value.end + "\n");
             object[key] = animate(value.start, value.end, ttime);
         }
         return base.update(ttime);
