@@ -65,7 +65,7 @@ class Animation extends InterpolableBase
 
     function animate(start, end, ttime)
     {
-        return start + ((end - start) * interpolation(minmax(normalize(ttime - tstart, tlapse))));
+        return start + ((end - start) * config.interpolation(minmax(normalize(ttime - tstart, tlapse))));
     }
 
     function normalize(elapsed, lapse)
