@@ -151,7 +151,7 @@ fe.load_module("wafam/animate");
     * `properties`: A table with the information of the properties to animate. Each slot represents a property to animate and contains a `start` value and an `end` value. The property will be animated from the start value to the end value. The key must match the property to animate.
     * `interpolation`: The interpolation method that will be applied. If this slot isn't set, a linear interpolation method will be used.
     * `onstart`: A function that will be called before the animation starts. If this slot isn't set, no method will be called.
-    * `onupdate`: A function that will be called on every frame of the animation. If this slot isn't set, no method will be called.
+    * `onupdate`: A function that will be called on every frame of the animation, after the properties are animated. If this slot isn't set, no method will be called.
     * `onstop`: A function that will be called after the animation ends. If this slot isn't set, no method will be called.
 
     Example:

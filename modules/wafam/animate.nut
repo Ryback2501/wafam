@@ -14,6 +14,7 @@ class Animation extends InterpolableBase
     {
         this.object = object;
         this.config = config != null ? config : {};
+        if(!("interpolation" in this.config)) this.config.interpolation <- interpolations.linear;
         this.blocking = blocking;
         tlapse = lapse;
     }
@@ -43,11 +44,11 @@ class Animation extends InterpolableBase
     function update(ttime)
     {
         if(!("properties" in config)) return true;
-        if("onupdate" in config) config.onupdate(this);
         foreach(key, value in config.properties)
         {
             object[key] = animate(value.start, value.end, ttime);
         }
+        if("onupdate" in config) config.onupdate(this);
         return base.update(ttime);
     }
 
@@ -64,7 +65,6 @@ class Animation extends InterpolableBase
 
     function animate(start, end, ttime)
     {
-        local interpolation = "interpolation" in config ? config.interpolation : interpolations.linear;
         return start + ((end - start) * interpolation(minmax(normalize(ttime - tstart, tlapse))));
     }
 
