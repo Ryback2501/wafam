@@ -15,6 +15,13 @@ class Interpolator
         interpolables.insert(0, interpolable);
     }
 
+    function remove(interpolable)
+    {
+        local index = interpolables.find(interpolable);
+        if(index != null)
+            interpolables.remove(index);
+    }
+
     function interpolate(ttime)
     {
         local last = interpolables.len() - 1;
@@ -30,29 +37,76 @@ The base class which any interpolable class must extend in order to work with th
 class InterpolableBase
 {
     tlapse = 0;
-    tstart = -1;
+    tstart = null;
 
     constructor(lapse)
     {
         tlapse = lapse;
     }
 
+    function add_to_loop()
+    {
+        if(interpolator.interpolables.find(this) != null) { stop(); return; }
+        interpolator.add(this);
+    }
+
     function interpolate(ttime)
     {
-        if(tstart < 0) start(ttime);
+        if(tstart == null) start(ttime);
         if(update(ttime)) return stop();
         return false;
     }
 
     function start(ttime) { tstart = ttime; }
     function update(ttime) { return ttime - tstart >= tlapse; }
-    function stop() { tstart = -1; return true; }
+    function stop() { tstart = null; return true; }
+}
+
+
+/*
+An interpolable base class that triggers methods when starts, on every update and when stops.
+*/
+class InterpolableTriggerBase extends InterpolableBase
+{
+    config = null;
+
+    function setup_onstoponce(func)
+    {
+        if(func != null)
+        {
+            if("onstoponce" in config) config.onstoponce = func;
+            else config.onstoponce <- func;
+        }
+    }
+
+    function start(ttime)
+    {
+        if("onstart" in config) config.onstart(this);
+        base.start(ttime);
+    }
+
+    function update(ttime)
+    {
+        if("onupdate" in config) config.onupdate(this);
+        return base.update(ttime);
+    }
+
+    function stop()
+    {
+        if("onstop" in config) config.onstop(this);
+        if("onstoponce" in config)
+        {
+            config.onstoponce(this);
+            delete config.onstoponce;
+        } 
+        return base.stop();
+    }
 }
 
 //The instance of the interpolator added to the main table.
 interpolator <- Interpolator();
 
-//A table with functions to interpolate a normalized value (between 0 and 1)
+//A table with functions to interpolate a  progress (p) that has been normalized (with values between 0 and 1)
 interpolations <- {
     constant =   function(p) { return p < 1 ? 0 : 1; },
     linear =     function(p) { return p; },
