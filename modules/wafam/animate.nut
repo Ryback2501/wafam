@@ -12,7 +12,7 @@ class Animation extends InterpolableTriggerBase
     constructor(lapse, animable_object, configuration = null, is_blocking = false)
     {
         object = animable_object;
-        config = configuration != null ? configuration : {};
+        setup_config(configuration);
         if(!("interpolation" in config)) config.interpolation <- interpolations.linear;
         blocking = is_blocking;
         tlapse = lapse;
@@ -22,6 +22,11 @@ class Animation extends InterpolableTriggerBase
     {
         setup_onstoponce(func);
         add_to_loop();
+    }
+
+    function finish()
+    {
+        remove_from_loop();
     }
 
     function setup_properties(prop)
@@ -64,14 +69,13 @@ class Animation extends InterpolableTriggerBase
 class AnimatedSprite extends InterpolableTriggerBase
 {
     sprite = null;
-    config = null;
     current_animation = null;
     blocking = false;
 
-    constructor(image, configuration, is_blocking = false)
+    constructor(atlas, configuration, is_blocking = false)
     {
-        config = configuration;
-        sprite = image;
+        setup_config(configuration);
+        sprite = atlas;
         sprite.subimg_width = config.sprite_width;
         sprite.subimg_height = config.sprite_height;
         blocking = is_blocking;
@@ -93,15 +97,19 @@ class AnimatedSprite extends InterpolableTriggerBase
         add_to_loop();
     }
 
+    function finish(frame = null)
+    {
+        remove_from_loop();
+        if(frame != null) set_sprite(frame);
+    }
+
     function update(ttime)
     {
         if(!current_animation.loop && base.update(ttime)) return true;
 
         local frame = current_animation.sequence[(((ttime - tstart) % tlapse) * current_animation.fps / 1000).tointeger()];
-        local frames_per_row = sprite.texture_width / sprite.subimg_width;
-        sprite.subimg_x = sprite.subimg_width * (frame % frames_per_row);
-        sprite.subimg_y = sprite.subimg_height * (frame / frames_per_row);
-        return false;        
+        set_sprite(frame);
+        return false;
     }
 
     function setup_sequence(sequence)
@@ -115,6 +123,12 @@ class AnimatedSprite extends InterpolableTriggerBase
         return sequence;
     }
 
+    function set_sprite(frame)
+    {
+        local frames_per_row = sprite.texture_width / sprite.subimg_width;
+        sprite.subimg_x = sprite.subimg_width * (frame % frames_per_row);
+        sprite.subimg_y = sprite.subimg_height * (frame / frames_per_row);
+    }
 }
 
 /*

@@ -50,6 +50,12 @@ class InterpolableBase
         interpolator.add(this);
     }
 
+    function remove_from_loop()
+    {
+        interpolator.remove(this);
+        stop();
+    }
+
     function interpolate(ttime)
     {
         if(tstart == null) start(ttime);
@@ -69,6 +75,11 @@ An interpolable base class that triggers methods when starts, on every update an
 class InterpolableTriggerBase extends InterpolableBase
 {
     config = null;
+
+    function setup_config(configuration)
+    {
+        config = configuration != null ? configuration : {};
+    }
 
     function setup_onstoponce(func)
     {

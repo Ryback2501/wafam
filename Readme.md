@@ -35,6 +35,9 @@ This module allows you to create classes that run actions along a defined time l
 
 * `InterpolableBase`: It is the base class of every interpolable object. Any object that inherits from this class and is added to the interpolator's list of interpolable objects (through the method `add(interpolable)` previously mentioned) will be interpolated along the lapse of time defined.
   
+  Methods:
+  * `add_to_loop()`: Adds the the interpolable class to the loop of the `Interpolator` class.
+  
   This is an example how to inherit from `InterpolableBase`:
   ````squirrel
   class LoggedInterpolable extends InterpolableBase
@@ -43,6 +46,12 @@ This module allows you to create classes that run actions along a defined time l
       {
           ::print("new!\n");
           base(lapse);
+      }
+
+      //When this method is called, the interpolation process of the interpolable class will start
+      function play_interpolation()
+      {
+          add_to_loop();
       }
 
       // This method is executed before the interpolation begins
@@ -67,6 +76,72 @@ This module allows you to create classes that run actions along a defined time l
       }
   }
   ````
+* `InterpolableTriggerBase`: This class, that extends from InterpolableBase, adds functionality to trigger code when the interpolation starts, on every update and when it stops.
+
+  Methods:
+  * `setup_config(configuration)`: Receives a configuration table with slots that reference to functions that will be called on concrete events. If it is called with null or without parameter, it will create an empty table. These are the slots with the references:
+    * `onstart`: A function that will be called before the animation starts. If this slot isn't set, no method will be called.
+    * `onupdate`: A function that will be called on every frame of the animation, after the properties are animated. If this slot isn't set, no method will be called.
+    * `onstop`: A function that will be called after the animation ends. If this slot isn't set, no method will be called.
+  
+    The methods receive a parameter which will be a reference to the `InterpolableTriggerBase` class instance.
+
+    Example:
+    ````squirrel
+    class Foo extends InterpolableTriggerBase
+    {
+        //When the instance is created, it can receive the configuration table
+        constructor(configuration = null)
+        {
+            setup_config(configuration);
+        }
+    }
+
+    local config_table = {
+        onstart = function(inter)
+        {
+            ::print("The interpolation is about to start.\n");
+        }
+        onupdate = function(inter)
+        {
+            ::print("The interpolation is updating.\n");
+        }
+        onstop = function(inter)
+        {
+            ::print("The interpolation just stopped.\n");
+        }
+    }
+
+    //The class is created with the configuration table
+    local my_foo = Foo(config_table);
+    ````
+
+  * `setup_onstoponce(func)`: This method adds a fourth reference to a method that will be executed only once, after the `onstop` function.
+
+    Example:
+    ````squirrel
+    class Foo extends InterpolableTriggerBase
+    {
+        //When the instance is created, it can receive the configuration table
+        constructor(configuration = null)
+        {
+            setup_config(configuration);
+        }
+
+        //This method would be called to start the interpolation process. The function parameter is optional.
+        function play_interpolation(func = null)
+        {
+            setup_onstoponce(func);
+            add_to_loop();
+        }
+    }
+
+    local my_foo = Foo();
+
+    my_foo.play_interpolation();
+
+    my_foo.play_interpolation( function(inter) { ::print("Only this time, I'm logging that the interpolation just finished.\n"); } );
+    ```` 
 
 ---
 
@@ -88,74 +163,106 @@ fe.load_module("wafam/animate");
 
 * `Animation`: Animates the values of the properties of an object.
   
-    The constructor has the follwing parameters:
-    * `lapse`: The lapse of time, in miliseconds, the animation lasts.
-    * `object`: The object which properties the animation will animate.
-    * `config`: A table with the configuration of the animation. This is an optional parameter and the default value is `null`. 
-    * `blocking`: Indicates if the animation is a blocking animation. This is an optional parameter and the default value is `false`. This flag can be checked with the `blocking_animations_running` function.
+  The constructor has the following parameters:
+  * `lapse`: The lapse of time, in miliseconds, the animation lasts.
+  * `object`: The object which properties the animation will animate.
+  * `configuration`: A table with the configuration of the animation. It can contain the `onstart`, `onupdate` and `onstop` slots described in `InterpolableTriggerBase` class and a `properties` slot which is a table with the information of the properties of the object to animate. In that table each slot represents a property to animate. The key of the slot must match the name of the proprty to animate and contains a `start` value and an `end` value. It is also optional, and can be setup after creating the animation (see information about `setup_properties(prop)` function), but if no properties are defined when trying to play an animation, it won't play
+  * `is_blocking`: Indicates if the animation is a blocking animation. This is an optional parameter and the default value is `false`. This flag can be checked with the `blocking_animations_running` function.
 
-    > **Note**: If an animation is created without a configuration, the method `setup_properties` must be called before playing the animation to define the animation ranges of the properties to animate.
+  > **Note**: If an animation is created without a configuration, the method `setup_properties` must be called before playing the animation to define the animation ranges of the properties to animate.
 
-    Example
+  Examples:
+  ````squirrel
+  //Configuration to move an object horizontally
+  local config = {
+      properties = {
+          x = { start = 100, end = 250 },
+          y = { start = 250, end = 300 },
+          width = { start = 125, end = 75 }
+      }  
+  };
+
+  //This is a 1 second blocking animation of the foo object
+  local animation = Animation(1000, foo, config, true);
+  ````
+
+  ````squirrel
+  //This animation doesn't have a configuration, so it won't be played.
+  local dumb_animation = Animation(5000, foo);
+  ````
+
+  Methods:
+  * `play(func)`: Plays the animation. If a function is sent as parameter, it will be called when the animation finishes. The function will be called with a reference of the animation.
+
+    Examples:
     ````squirrel
-    //Configuration to move an object horizontally
-    local config = { properties = { x = { start = 100, end = 250 } } };
-
-    //This is a 1 second blocking animation of the foo object
+    local config = {
+        interpolation = interpolations.linear,
+        properties = {
+            x = { start = 100, end = 250 }
+        }
+    };
+    
     local animation = Animation(1000, foo, config, true);
-    ````
-
-    ````squirrel
-    //This animation doesn't have a configuration, so it won't be played.
-    local dumb_animation = Animation(5000, foo);
-    ````
-
-    Methods:
-    * `play(func = null)`: Plays the animation. If a function is sent as parameter, it will be called when the animation finishes. The function will be called with a reference of the animation.
-
-    Examples
-    ````squirrel
-    local config = { interpolation = interpolations.linear, properties = { x = { start = 100, end = 250 } } };
-    local animation = Animation(1000, foo, config, true);
+    
     animation.play();
     ````
 
     ````squirrel
     //When the animation finishes, it will print a message
-    local my_function = function(anim) { ::print("The animation has finished.\n"); };
-    animation.play(my_function)
+    local my_function = function(anim) {
+        ::print("The animation has finished.\n");
+    };
+    
+    animation.play(my_function);
     ````
 
     > **Note**: If an `onstop` function is defined in the configuration of the animation, it won't be replaced if the animation is played with another function as parameter. In that case, when the animation finishes, the `onstop` function will be called and the function sent as parameter will be called afterwards.
 
-    * `setup_properties(prop)`: Replaces the `properties` section of the `configuration` table in the animation by the `prop` table sent as parameter.
-
-    Example
-    ````squirrel
-    //This new animation is useless.
-    local apparently_dumb_animation = Animation(5000, foo);
-
-    //The table contains only information of the
-    local config = {
-        width = { start = 50, end = 700 },
-        x = { start = 150, end = 560 },
-        y = { start = 45, end = 300 }
-    };
-
-    //The information of the properties to animate
-    apparently_dumb_animation.setup_properties(config);
-    apparently_dumb_animation.play();
-    ````
-
-    The structure of the `config` table of an animation:
-    * `properties`: A table with the information of the properties to animate. Each slot represents a property to animate and contains a `start` value and an `end` value. The property will be animated from the start value to the end value. The key must match the property to animate.
-    * `interpolation`: The interpolation method that will be applied. If this slot isn't set, a linear interpolation method will be used.
-    * `onstart`: A function that will be called before the animation starts. If this slot isn't set, no method will be called.
-    * `onupdate`: A function that will be called on every frame of the animation, after the properties are animated. If this slot isn't set, no method will be called.
-    * `onstop`: A function that will be called after the animation ends. If this slot isn't set, no method will be called.
+  * `finish()`: Finishes the animation and leaves the properties with the values they have at that moment.
 
     Example:
     ````squirrel
+    local config = {
+        interpolation = interpolations.linear,
+        properties = {
+            x = { start = 100, end = 250 }
+        }
+    };
+    
+    local animation = Animation(1000, foo, config, true);
+    
+    animation.play();
+
+    //The animation is interrupted
+    animation.finish();
+    ````
+
+  * `setup_properties(prop)`: Replaces the `properties` section of the `configuration` table in the animation by the `prop` table sent as parameter.
+
+    Examples:
+    ````squirrel
+    //This new animation is useless
+    local apparently_dumb_animation = Animation(5000, foo);
+
+    //The table contains only information of the properties to animate
+    local config = {
+        properties = {
+            width = { start = 50, end = 700 },
+            x = { start = 150, end = 560 },
+            y = { start = 45, end = 300 }
+        }
+    };
+
+    //The properties to animate are setup
+    apparently_dumb_animation.setup_properties(config);
+
+    //And the animation can play
+    apparently_dumb_animation.play();
+    ````
+
+    ````squirrel
+    //This is an example of a table with all the configurations
     {
         properties = {
             x = { start = 100, end = 200 },
@@ -175,6 +282,88 @@ fe.load_module("wafam/animate");
             ::print("The animation just finished.\n");
         }
     }
+    ````
+
+* `AnimatedSprite`: Animates a sequence of sprites.
+
+  The constructor has the following parameters:
+  * `atlas`: The image with all the sprites of the animations in it.
+  * `configuration`: A table with the configuration of the animation. It can contain the `onstart`, `onupdate` and `onstop` slots described in `InterpolableTriggerBase` class and the following slots:
+    * `sprite_width`: The width in pixels of the sub image of a sprite. All the sprites have the same width.
+    * `sprite_height`: The height in pixels of the sub image of a sprite. All the sprites have the same height.
+    * `animations`: A table with all the different animations of the animated sprite. The key of each slot of the animation is the name of the animation and it contains the following slots:
+      * `sequence`: An array with the indexes of the frames in the order of order they appear in the animation.
+      * `fps`: The frames per second of the animation.
+      * `loop`: If it is `true`, the animation will play without stopping, otherwise, it will stop when it reaches its end. The last frame of the animation will be the frame the one visible after it stops.
+  * `is_blocking`: Indicates if the animation is a blocking animation. This is an optional parameter and the default value is `false`. This flag can be checked with the `blocking_animations_running` function.
+
+    Example:
+    ````squirrel
+    local conf = {
+        sprite_width = 32,
+        sprite_height = 48,
+        animations = {
+            iddle = { sequence = [0, 1, 2, 3, 4], fps = 18, loop = true },
+            walk = { sequence = [5, 6, 7, 8, 9, 10], fps = 24, loop = true },
+            jump = { sequence = [11, 12, 13, 14, 15, 16], fps = 24, loop = false }
+        }
+    };
+
+    local sprite = AnimatedSprite(fe.add_image("atlas.png"), conf);
+    ````
+
+  Methods:
+  * `play(animation, func)`: Plays an animation and, if set, runs a function at the end of it. Both parameters are optional. If no animation is indicated, the first of the list of animations will be the one played.
+
+    Example:
+    ````squirrel
+    local conf = {
+        sprite_width = 32,
+        sprite_height = 48,
+        animations = {
+            iddle = { sequence = [0, 1, 2, 3, 4], fps = 18, loop = true },
+            walk = { sequence = [5, 6, 7, 8, 9, 10], fps = 24, loop = true },
+            jump = { sequence = [11, 12, 13, 14, 15, 16], fps = 24, loop = false }
+        },
+        onstart = function(anim) {
+            ::print("A sprite animation is about to start.\n");
+        },
+        onupdate = function(anim) {
+            ::print("A sprite animation is playing.\n");
+        },
+        onstop = function(anim) {
+            ::print("A sprite animation just finished.\n");
+        }
+    };
+
+    local sprite = AnimatedSprite(fe.add_image("atlas.png"), conf);
+        
+    //no animation is defined, so the first will be played. In this case it is 'idle'
+    sprite.play();
+
+    // 'walk' animation will be played
+    sprite.play("walk");
+    ````
+  * `finish(frame)`: Finishes the animation and, if defined, sets the frame passed as a parameter.
+
+    Example:
+    ````squirrel
+    local conf = {
+        sprite_width = 32,
+        sprite_height = 48,
+        animations = {
+            iddle = { sequence = [0, 1, 2, 3, 4], fps = 18, loop = true },
+            walk = { sequence = [5, 6, 7, 8, 9, 10], fps = 24, loop = true },
+            jump = { sequence = [11, 12, 13, 14, 15, 16], fps = 24, loop = false }
+        }
+    };
+
+    local sprite = AnimatedSprite(fe.add_image("atlas.png"), conf);
+    sprite.play();
+
+    //The animation finishes and the sprite 14 of the atlas is the one shown
+    sprite.finish(14);
+
     ````
 
 ### Methods ###
