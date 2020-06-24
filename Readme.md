@@ -28,10 +28,10 @@ This module allows you to create classes that run actions along a defined time l
 
   * `add(interpolable)`: Adds an interpolable object to the list of interpolable objects of the interpolator.
 
-  Example
-  ````squirrel
-  interpolator.add(my_interpolable_object);
-  ````
+    Example:
+    ````squirrel
+    interpolator.add(my_interpolable_object);
+    ````
 
 * `InterpolableBase`: It is the base class of every interpolable object. Any object that inherits from this class and is added to the interpolator's list of interpolable objects (through the method `add(interpolable)` previously mentioned) will be interpolated along the lapse of time defined.
   
@@ -297,20 +297,20 @@ fe.load_module("wafam/animate");
       * `loop`: If it is `true`, the animation will play without stopping, otherwise, it will stop when it reaches its end. The last frame of the animation will be the frame the one visible after it stops.
   * `is_blocking`: Indicates if the animation is a blocking animation. This is an optional parameter and the default value is `false`. This flag can be checked with the `blocking_animations_running` function.
 
-    Example:
-    ````squirrel
-    local conf = {
-        sprite_width = 32,
-        sprite_height = 48,
-        animations = {
-            iddle = { sequence = [0, 1, 2, 3, 4], fps = 18, loop = true },
-            walk = { sequence = [5, 6, 7, 8, 9, 10], fps = 24, loop = true },
-            jump = { sequence = [11, 12, 13, 14, 15, 16], fps = 24, loop = false }
-        }
-    };
+  Example:
+  ````squirrel
+  local conf = {
+      sprite_width = 32,
+      sprite_height = 48,
+      animations = {
+          iddle = { sequence = [0, 1, 2, 3, 4], fps = 18, loop = true },
+          walk = { sequence = [5, 6, 7, 8, 9, 10], fps = 24, loop = true },
+          jump = { sequence = [11, 12, 13, 14, 15, 16], fps = 24, loop = false }
+      }
+  };
 
-    local sprite = AnimatedSprite(fe.add_image("atlas.png"), conf);
-    ````
+  local sprite = AnimatedSprite(fe.add_image("atlas.png"), conf);
+  ````
 
   Methods:
   * `play(animation, func)`: Plays an animation and, if set, runs a function at the end of it. Both parameters are optional. If no animation is indicated, the first of the list of animations will be the one played.
