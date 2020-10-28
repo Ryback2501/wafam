@@ -7,22 +7,35 @@ function add_artwork(label, parent = ::fe, offset = 0)
 
 function get_artwork_path(label, offset = 0)
 {
-    local path = fe.path_expand("./scraper/" + fe.game_info(Info.Emulator, offset - fe.list.index) + "/" + label + "/");
+    local name = fe.game_info(Info.Name, offset);
+    local emulator = fe.game_info(Info.Emulator, offset);
+    local path = fe.path_expand("./scraper/" + emulator + "/" + label + "/");
+    local full_path = null;
+
     foreach(extension in supported_img_extensions)
     {
-        local full_path = path + fe.game_info(Info.Name, offset) + "." + extension;
+        full_path = path + name + "." + extension;
         if(fe.path_test(full_path, PathTest.IsFile))
         {
             return full_path;
         }
     }
-    return path + fe.game_info(Info.Emulator, offset) + ".jpg";
+    foreach(extension in supported_img_extensions)
+    {
+        full_path = path + emulator + "." + extension;
+        if(fe.path_test(full_path, PathTest.IsFile))
+        {
+            return full_path;
+        }
+    }
+    return null;
 }
 
 function fit_aspect_ratio(image, max_width, max_height)
 {
     local texture_aspect = image.texture_width / image.texture_height.tofloat();
     local wider = texture_aspect > max_width / max_height.tofloat();
+    
     if(wider)
     {
         image.width = max_width;
