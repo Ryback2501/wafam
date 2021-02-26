@@ -38,10 +38,12 @@ class InterpolableBase
 {
     tlapse = 0;
     tstart = null;
+    lcount = null;
 
-    constructor(lapse)
+    constructor(lapse, loop = null)
     {
         tlapse = lapse;
+        lcount = loop;
     }
 
     function add_to_loop()
@@ -64,7 +66,7 @@ class InterpolableBase
     }
 
     function start(ttime) { tstart = ttime; }
-    function update(ttime) { return ttime - tstart >= tlapse; }
+    function update(ttime) { return lcount != "infinite" && (ttime - tstart >= (typeof lcount != "integer" || lcount < 1 ? 1 : lcount) * tlapse) }
     function stop() { tstart = null; return true; }
 }
 

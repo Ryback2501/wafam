@@ -9,13 +9,14 @@ class Animation extends InterpolableTriggerBase
     object = null;
     blocking = false;
 
-    constructor(lapse, animable_object, configuration = null, is_blocking = false)
+    constructor(lapse, animable_object, configuration = null, is_blocking = false, loop = null)
     {
         object = animable_object;
         setup_config(configuration);
         if(!("interpolation" in config)) config.interpolation <- interpolations.linear;
         blocking = is_blocking;
         tlapse = lapse;
+        lcount = loop;
     }
 
     function play(func = null)
@@ -72,13 +73,14 @@ class AnimatedSprite extends InterpolableTriggerBase
     current_animation = null;
     blocking = false;
 
-    constructor(atlas, configuration, is_blocking = false)
+    constructor(atlas, configuration, is_blocking = false, loop = null)
     {
         setup_config(configuration);
         sprite = atlas;
         sprite.subimg_width = config.sprite_width;
         sprite.subimg_height = config.sprite_height;
         blocking = is_blocking;
+        lcount = loop;
     }
 
     function play(func = null)
@@ -109,7 +111,7 @@ class AnimatedSprite extends InterpolableTriggerBase
 
         local frame = current_animation.sequence[(((ttime - tstart) % tlapse) * current_animation.fps / 1000).tointeger()];
         set_sprite(frame);
-        return false;
+        return base.update(ttime);
     }
 
     function setup_sequence(sequence)
